@@ -1,0 +1,16 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    //gradle更新到5.1的时候，发现annotation processor无法自动生成文件了，原因是
+    //在Gradle 5.0将忽略compile classpath中的annotation processor，需要手动添加到annotation processor path。
+    //添加下面这句解决问题
+    annotationProcessor 'com.google.auto.service:auto-service:1.0-rc6'
+    implementation 'com.google.auto.service:auto-service:1.0-rc6'
+    implementation 'com.squareup:javapoet:1.10.0'
+    implementation project(path: ':aptAnnotation')
+    implementation files('/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/lib/tools.jar')
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"

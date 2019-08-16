@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <TextView
+        android:id="@+id/tv_hello"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello1"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello2"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello4"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello3"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello5"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello4"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello6"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello5"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello7"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello6"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello8"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello7"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello9"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello8"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_hello10"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Hello World!"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hello9"
+        tools:ignore="MissingConstraints" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
