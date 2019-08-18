@@ -1,5 +1,9 @@
 package com.app.aptprocessor;
 
+import com.squareup.javapoet.ClassName;
+
+import org.checkerframework.checker.units.qual.C;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -46,6 +50,34 @@ public class ProcessorUtils {
                 TypeElement typeElement = (TypeElement) elt;
                 return isInstanceof(typeElement, className);
             }
+        }
+        return false;
+    }
+
+    public static boolean isInstanceof(String classType, String className) {
+        try {
+            if (classType.equals(className)) {
+                return true;
+            }
+            Class<?> aClass = Class.forName(classType);
+            return isInstanceof(aClass,className);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean isInstanceof(Class<?> classType, String className) {
+        try {
+            if (classType.getName().equals(className)) {
+                return true;
+            }
+            if (!(classType != Object.class)){
+                Class<?> superclass = classType.getSuperclass();
+                return isInstanceof(superclass,className);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }

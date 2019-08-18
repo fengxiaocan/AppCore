@@ -5,6 +5,7 @@ import com.app.aptannotation.BindLayout;
 import com.app.aptannotation.BindView;
 import com.app.aptannotation.ViewClick;
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.sun.tools.javac.code.Symbol;
 
@@ -108,7 +109,8 @@ public class AutoBundleProcessor extends AbstractProcessor {
                 String fullClassName = classElement.getQualifiedName().toString();
 
                 //elements的信息保存到mProxyMap中
-
+                TypeMirror typeMirror = element.asType();
+                printMessage("asType === :" + ClassName.get(typeMirror).toString());
 //                boolean isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
 //                if (isActivity) {
                     AutoBundleClassCreatorProxy proxy = mProxyMap.get(fullClassName);

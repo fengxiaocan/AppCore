@@ -1,6 +1,5 @@
 package com.app.apptest;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,10 +59,11 @@ public class MainActivity extends AppCompatActivity {
             R.id.tv_hello5, R.id.tv_hello6, R.id.tv_hello7, R.id.tv_hello8, R.id.tv_hello9,
             R.id.tv_hello10})
     void helloAction(View view) {
-//        Snackbar.make(view, ((TextView) view).getText(), Snackbar.LENGTH_LONG).setAction("Action",
-//                null).show();
-        Intent intent = new Intent();
-        intent.setClass(this,HelloActivity.class);
+//        HelloActivityAutoBundle.build()
+//                .year(1)
+//                .bundleExtra(new Bundle())
+//                .charSequenceArrayExtra(new CharSequence[]{})
+//                .start(this);
     }
 
 
