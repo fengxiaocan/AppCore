@@ -1,8 +1,5 @@
 package com.app.apptest;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import java.io.Serializable;
 
 public class SerializableBean  implements Serializable {

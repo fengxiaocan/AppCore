@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MainActivityViewBinding.bind(this);
+//        MainActivityViewBinding.bind(this);
         setSupportActionBar(toolbar);
 
         hello7.setText("hello7");

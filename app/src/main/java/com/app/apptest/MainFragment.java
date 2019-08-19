@@ -49,6 +49,6 @@ public class MainFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        MainFragmentViewBinding binding = MainFragmentViewBinding.bind(this, view);
+//        MainFragmentViewBinding binding = MainFragmentViewBinding.bind(this, view);
     }
 }

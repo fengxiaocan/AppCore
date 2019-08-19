@@ -95,8 +95,8 @@ public class HelloActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        HelloActivityViewBinding.bind(this);
-        HelloActivityAutoBundle.bind(this);
+//        HelloActivityViewBinding.bind(this);
+//        HelloActivityAutoBundle.bind(this);
 //        if (intent.hasExtra(name)) {
         //              intent.getBooleanExtra(name, false);
         //              intent.getByteExtra(name, (byte) 0);
