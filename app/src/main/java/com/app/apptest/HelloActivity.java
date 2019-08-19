@@ -1,15 +1,12 @@
 package com.app.apptest;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.aptannotation.AutoBundle;
 import com.app.aptannotation.BindLayout;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 @BindLayout(R.layout.activity_hello)
@@ -84,56 +81,51 @@ public class HelloActivity extends AppCompatActivity {
     Bundle bundleExtra;
     @AutoBundle
     ParcelableBean parcelableExtra;
-//    @AutoBundle
-//    Parcelable[] parcelableArrayExtra;
-//    @AutoBundle
-//    ArrayList<Parcelable> parcelableArrayListExtra;
-//    @AutoBundle
-//    Serializable serializableExtra;
+    @AutoBundle
+    ParcelableBean[] parcelableBeans;
+    @AutoBundle
+    ArrayList<ParcelableBean> beanArrayList;
+    @AutoBundle
+    ClassBean[] classBeans;
+    @AutoBundle
+    ArrayList<ClassBean> classBeanArrayList;
+    @AutoBundle
+    SerializableBean serializableBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         HelloActivityViewBinding.bind(this);
-//        HelloActivityAutoBundle.bind(this);
-        String name = "";
-        Intent intent = getIntent();
-
-        if (parcelableExtra instanceof Serializable){
-
-        }
+        HelloActivityAutoBundle.bind(this);
 //        if (intent.hasExtra(name)) {
-//            intent.getBooleanExtra(name, false);
-//            intent.getByteExtra(name, (byte) 0);
-//            intent.getShortExtra(name, (short) 0);
-//            intent.getIntExtra(name, 0);
-//            intent.getLongExtra(name, 0L);
-//            intent.getCharExtra(name, '\u0000');
-//            intent.getFloatExtra(name, 0F);
-//            intent.getDoubleExtra(name, 0D);
-//            intent.getStringExtra(name);
-//
-//            intent.getBooleanArrayExtra(name);
-//            intent.getByteArrayExtra(name);
-//            intent.getShortArrayExtra(name);
-//            intent.getIntArrayExtra(name);
-//            intent.getLongArrayExtra(name);
-//            intent.getCharArrayExtra(name);
-//            intent.getFloatArrayExtra(name);
-//            intent.getDoubleArrayExtra(name);
-//            intent.getStringArrayExtra(name);
-//
-//        ArrayList<Integer> listExtra = intent.getIntegerArrayListExtra(name);
-//        CharSequence charSequenceExtra = intent.getCharSequenceExtra(name);
-//        CharSequence[] charSequenceArrayExtra = intent.getCharSequenceArrayExtra(name);
-//        ArrayList<CharSequence> charSequenceArrayListExtra = intent.getCharSequenceArrayListExtra(name);
-//        ArrayList<String> stringArrayListExtra = intent.getStringArrayListExtra(name);
-//
-//        Bundle bundleExtra = intent.getBundleExtra(name);
-//        Parcelable parcelableExtra = intent.getParcelableExtra(name);
-//        Parcelable[] parcelableArrayExtra = intent.getParcelableArrayExtra(name);
-//        ArrayList<Parcelable> parcelableArrayListExtra = intent.getParcelableArrayListExtra(name);
-//        Serializable serializableExtra = intent.getSerializableExtra(name);
+        //              intent.getBooleanExtra(name, false);
+        //              intent.getByteExtra(name, (byte) 0);
+        //              intent.getShortExtra(name, (short) 0);
+        //              intent.getIntExtra(name, 0);
+        //              intent.getLongExtra(name, 0L);
+        //              intent.getCharExtra(name, '\u0000');
+        //              intent.getFloatExtra(name, 0F);
+        //              intent.getDoubleExtra(name, 0D);
+        //              intent.getStringExtra(name);
+        //              intent.getBooleanArrayExtra(name);
+        //              intent.getByteArrayExtra(name);
+        //              intent.getShortArrayExtra(name);
+        //              intent.getIntArrayExtra(name);
+        //              intent.getLongArrayExtra(name);
+        //              intent.getCharArrayExtra(name);
+        //              intent.getFloatArrayExtra(name);
+        //              intent.getDoubleArrayExtra(name);
+        //              intent.getStringArrayExtra(name);
+        //              intent.getIntegerArrayListExtra(name);
+        //              intent.getCharSequenceExtra(name);
+        //              intent.getCharSequenceArrayExtra(name);
+        //              intent.getCharSequenceArrayListExtra(name);
+        //              intent.getStringArrayListExtra(name);
+        //              intent.getBundleExtra(name);
+        //              intent.getParcelableExtra(name);
+        //              intent.getParcelableArrayExtra(name);
+        //              intent.getParcelableArrayListExtra(name);
+        //              intent.getSerializableExtra(name);
 //        }
     }
 

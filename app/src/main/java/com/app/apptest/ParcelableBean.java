@@ -3,7 +3,7 @@ package com.app.apptest;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class ParcelableBean implements Parcelable {
+public class ParcelableBean extends ClassBean implements Parcelable,Runnable {
     private int year;
     private String name;
 
@@ -50,5 +50,10 @@ public class ParcelableBean implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeInt(year);
         parcel.writeString(name);
+    }
+
+    @Override
+    public void run() {
+
     }
 }

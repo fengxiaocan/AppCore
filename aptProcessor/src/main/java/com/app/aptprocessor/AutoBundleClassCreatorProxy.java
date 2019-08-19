@@ -19,7 +19,7 @@ import javax.lang.model.util.Elements;
  * The type Bind view class creator proxy.
  */
 public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
-    private HashSet<VariableElement> mVariableElementSet = new HashSet();
+    private HashMap<String, VariableElement> mVariableElementMap = new HashMap();
     private Map<String, FieldSpec> mFieldElementMap = new HashMap<>();//生成的成员变量
     private ClassName mContextClass = ClassName.get("android.content", "Context");
     private ClassName mActivityClass = ClassName.get("android.app", "Activity");
@@ -48,7 +48,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      */
     public void addVariableElement(VariableElement element) {
         if (element != null) {
-            mVariableElementSet.add(element);
+            mVariableElementMap.put(element.getSimpleName().toString(), element);
         }
     }
 
@@ -79,13 +79,15 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      */
     private HashSet<FieldSpec> generateFields() {
         HashSet<FieldSpec> fieldSpecs = new HashSet();
-        for (VariableElement element : mVariableElementSet) {
+        for (String key : mVariableElementMap.keySet()) {
+            VariableElement element = mVariableElementMap.get(key);
             FieldSpec field = toField(element);
             fieldSpecs.add(field);
             mFieldElementMap.put(field.name, field);
         }
         return fieldSpecs;
     }
+
 
     /**
      * 创建构造函数
@@ -194,7 +196,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                 Modifier.PUBLIC).addModifiers(Modifier.STATIC).returns(void.class);
         methodBuilder.addParameter(mHostClassName, "host");
 
-        methodBuilder.addStatement(" Intent intent = host.getIntent()");
+        methodBuilder.addStatement("Intent intent = host.getIntent()");
 
         for (String key : mFieldElementMap.keySet()) {
             FieldSpec spec = mFieldElementMap.get(key);
@@ -245,24 +247,36 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                 methodBuilder.addCode(String.format("host.%s = intent.getCharSequenceArrayListExtra(\"%s\");", key, key));
             } else if ("java.util.ArrayList<java.lang.String>".equals(specType)) {
                 methodBuilder.addCode(String.format("host.%s = intent.getStringArrayListExtra(\"%s\");", key, key));
-            } else {
-//                methodBuilder.addCode(String.format("if (host.%s instanceof $T){\n", key), ClassName.get("android.os", "Parcelable"));
-//                methodBuilder.addCode(String.format("host.%s = ($T)intent.getParcelableExtra(\"%s\");\n", key, key), spec.type);
-//                methodBuilder.addCode("}\n");
-//                methodBuilder.addCode(String.format("else if (host.%s instanceof $T){\n", key), ClassName.get("java.io", "Serializable"));
-//                methodBuilder.addCode(String.format("host.%s = ($T)intent.getSerializableExtra(\"%s\");\n", key, key), spec.type);
-//                methodBuilder.addCode("}\n");
+            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+                    "android.os.Parcelable"))
+            {
+                methodBuilder.addCode(
+                        String.format("host.%s = ($T)intent.getParcelableExtra(\"%s\");\n", key,
+                                key), spec.type);
+            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+                    "java.io.Serializable"))
+            {
+                methodBuilder.addCode(
+                        String.format("host.%s = ($T)intent.getSerializableExtra(\"%s\");\n", key,
+                                key), spec.type);
+            } else if (ProcessorUtils.isInterfacesOfList(mVariableElementMap.get(key),
+                    "android.os.Parcelable"))
+            {
+                methodBuilder.addCode(
+                        String.format("host.%s = intent.getParcelableArrayListExtra(\"%s\");\n",
+                                key, key));
+            }else if (ProcessorUtils.isInterfacesOfArray(mVariableElementMap.get(key),
+                    "android.os.Parcelable"))
+            {
+                methodBuilder.addCode(
+                        String.format("host.%s = ($T)intent.getParcelableArrayExtra(\"%s\");\n",
+                                key, key), spec.type);
+            }  else {
+                System.out.println("无法解析:" + key);
+                methodBuilder.addCode(
+                        String.format("//host.%s = ??? 无法解析该类型的参数,请实现Parcelable接口或Serializable接口",
+                                key));
             }
-
-            //"android.os.Parcelable[]"
-            //"java.util.ArrayList<android.os.Parcelable>"
-            //"java.io.Serializable"
-
-//        Parcelable parcelableExtra = intent.getParcelableExtra(name);
-//        Parcelable[] parcelableArrayExtra = intent.getParcelableArrayExtra(name);
-//        ArrayList<Parcelable> parcelableArrayListExtra = intent.getParcelableArrayListExtra(name);
-//        Serializable serializableExtra = intent.getSerializableExtra(name);
-
             methodBuilder.addCode("\n");
         }
         return methodBuilder.build();

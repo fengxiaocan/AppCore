@@ -1,6 +1,8 @@
 package com.app.apptest;
 
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
         hello8.setText("hello8");
         hello9.setText("hello9");
         hello10.setText("hello10");
-
+        boolean isImplementInterface = Parcelable.class.isAssignableFrom(ParcelableBean.class);
+        Log.e("noah","isImplementInterface="+isImplementInterface);
     }
 
     @ViewClick(R.id.fab)

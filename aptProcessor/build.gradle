@@ -10,7 +10,7 @@ dependencies {
     implementation 'com.squareup:javapoet:1.10.0'
     implementation project(path: ':aptAnnotation')
 //    implementation files('/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/lib/tools.jar')
-    implementation files('C:\\Users\\Administrator\\Documents\\android-studio\\jre\\lib\\tools.jar')
+//    implementation files('C:\\Users\\Administrator\\Documents\\android-studio\\jre\\lib\\tools.jar')
 }
 
 sourceCompatibility = "1.8"
