@@ -15,7 +15,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
-public abstract class BaseClassCreatorProxy {
+abstract class BaseClassCreatorProxy {
     protected String mBindingClassName;//生成的绑定类
     protected String mPackageName;//包名
     protected TypeElement mTypeElement;//依赖的类

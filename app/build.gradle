@@ -1,12 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.1"
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.app.apptest"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -15,6 +14,10 @@ android {
 //                includeCompileClasspath false
 //            }
 //        }
+
+
+        vectorDrawables.useSupportLibrary =
+                true
     }
     buildTypes {
         release {
@@ -22,7 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
@@ -34,10 +40,16 @@ dependencies {
 
     implementation 'com.google.auto.service:auto-service:1.0-rc6'
     implementation 'com.squareup:javapoet:1.10.0'
-    annotationProcessor 'com.google.auto.service:auto-service:1.0-rc6'
-    api 'com.github.fengxiaocan.AppCore:aptAnnotation:v0.0.2'
-    annotationProcessor 'com.github.fengxiaocan.AppCore:aptProcessor:0.0.3'
+    implementation 'androidx.vectordrawable:vectordrawable:1.0.1'
 
-//    implementation project(path: ':aptAnnotation')
-//    annotationProcessor project(path: ':aptProcessor')
+    implementation 'com.google.code.gson:gson:latest.release'
+
+    annotationProcessor 'com.google.auto.service:auto-service:1.0-rc6'
+
+//    implementation 'com.github.fengxiaocan.AppCore:aptAnnotation:0.0.4'
+//    annotationProcessor 'com.github.fengxiaocan.AppCore:aptProcessor:0.0.4'
+
+    implementation project(path: ':core')
+    implementation project(path: ':aptAnnotation')
+    annotationProcessor project(path: ':aptProcessor')
 }

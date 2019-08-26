@@ -3,6 +3,7 @@ package com.app.aptprocessor;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.List;
 
+import javax.accessibility.Accessible;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -153,7 +154,6 @@ public class ProcessorUtils {
      */
     public static boolean isInterfacesOfArray(Type.ArrayType arrayType, String className) {
         Type elemtype = arrayType.elemtype;
-        System.out.println("isInterfacesOfArray="+elemtype.toString());
         if (elemtype instanceof Type.ClassType) {
             List<Type> interfaces_field = ((Type.ClassType) elemtype).interfaces_field;
             for (Type type : interfaces_field) {

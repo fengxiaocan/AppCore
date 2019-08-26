@@ -1,6 +1,6 @@
 package com.app.aptprocessor;
 
-import com.app.aptannotation.AutoBundle;
+import com.app.aptannotation.AutoIntent;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 
@@ -20,6 +20,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 
@@ -27,10 +28,10 @@ import javax.tools.Diagnostic;
  * 对View进行操作的Processor
  */
 @AutoService(Processor.class)
-public class AutoBundleProcessor extends AbstractProcessor {
+public class AutoIntentProcessor extends AbstractProcessor {
     private Messager mMessager;//用来打印日志信息
     private Elements mElementUtils;//一个用来处理Element的工具类，源代码的每一个部分都是一个特定类型的Element
-    private Map<String, AutoBundleClassCreatorProxy> mProxyMap = new HashMap<>();
+    private Map<String, AutoIntentClassCreatorProxy> mProxyMap = new HashMap<>();
 
 
     /**
@@ -58,7 +59,7 @@ public class AutoBundleProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         HashSet<String> supportTypes = new LinkedHashSet<>();
-        supportTypes.add(AutoBundle.class.getCanonicalName());
+        supportTypes.add(AutoIntent.class.getCanonicalName());
         return supportTypes;
     }
 
@@ -85,14 +86,14 @@ public class AutoBundleProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        printMessage("AutoBundleProcessor start ...");
+        printMessage("AutoIntentProcessor start ...");
         mProxyMap.clear();
         //得到所有的注解
         // roundEnvironment.getElementsAnnotatedWith(BindView.class)返回所有被注解了@BindView。
         // 你可能已经注意到，我们并没有说“所有被注解了@BindView”，因为它真的是返回Element的列表。
         // 请记住：Element可以是类、方法、变量等。所以，接下来，我们必须检查这些Element是否是一个类：
 
-        Set<? extends Element> elements = roundEnvironment.getElementsAnnotatedWith(AutoBundle.class);
+        Set<? extends Element> elements = roundEnvironment.getElementsAnnotatedWith(AutoIntent.class);
         for (Element element : elements) {
             if (element.getKind() == ElementKind.FIELD) {
                 //可以安全地进行强转，将Element对象转换为一个VariableElement对象
@@ -102,29 +103,25 @@ public class AutoBundleProcessor extends AbstractProcessor {
                 String fullClassName = classElement.getQualifiedName().toString();
 
                 //elements的信息保存到mProxyMap中
-                //                TypeMirror typeMirror = element.asType();
-                //                printMessage("asType === :" + ClassName.get(typeMirror).toString());
-                boolean isActivityOrFragment = ProcessorUtils.isInstanceof(classElement,
-                        "android.app.Activity") || ProcessorUtils.isInstanceof(classElement,
-                        "android.app.Fragment") || ProcessorUtils.isInstanceof(classElement,
-                        "androidx.fragment.app.Fragment");
-
-                if (isActivityOrFragment) {
-                    AutoBundleClassCreatorProxy proxy = mProxyMap.get(fullClassName);
+//                TypeMirror typeMirror = element.asType();
+//                printMessage("asType === :" + ClassName.get(typeMirror).toString());
+                boolean isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
+                if (isActivity) {
+                    AutoIntentClassCreatorProxy proxy = mProxyMap.get(fullClassName);
                     if (proxy == null) {
-                        proxy = new AutoBundleClassCreatorProxy(mElementUtils, classElement);
+                        proxy = new AutoIntentClassCreatorProxy(mElementUtils, classElement);
                         mProxyMap.put(fullClassName, proxy);
                     }
                     proxy.addVariableElement(variableElement);
-                } else {
-                    printMessage("非 activity 和 Fragment 不能使用 AutoBundle 注解");
+                }else {
+                    printMessage("非 activity 不能使用 AutoIntent 注解");
                 }
             }
         }
 
         //通过javapoet生成
         for (String key : mProxyMap.keySet()) {
-            AutoBundleClassCreatorProxy proxyInfo = mProxyMap.get(key);
+            AutoIntentClassCreatorProxy proxyInfo = mProxyMap.get(key);
             try {
                 JavaFile javaFile = JavaFile.builder(proxyInfo.getPackageName(),
                         proxyInfo.generateJavaCode()).build();
@@ -134,7 +131,7 @@ public class AutoBundleProcessor extends AbstractProcessor {
                 e.printStackTrace();
             }
         }
-        printMessage("AutoBundleProcessor finish ...");
+        printMessage("AutoIntentProcessor finish ...");
         return true;
     }
 

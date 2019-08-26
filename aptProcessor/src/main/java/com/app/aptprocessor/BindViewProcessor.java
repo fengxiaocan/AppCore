@@ -103,8 +103,8 @@ public class BindViewProcessor extends AbstractProcessor {
         for (Element element : layoutElements) {
             if (element.getKind() == ElementKind.CLASS) {
                 TypeElement classElement = (TypeElement) element;
-                boolean isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
-                if (isActivity) {
+//                boolean isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
+//                if (isActivity) {
                     //必须为Activity才能使用BindLayout
                     String fullClassName = classElement.getQualifiedName().toString();
                     BindViewClassCreatorProxy proxy = mProxyMap.get(fullClassName);
@@ -115,7 +115,7 @@ public class BindViewProcessor extends AbstractProcessor {
                     BindLayout bindAnnotation = classElement.getAnnotation(BindLayout.class);
                     int id = bindAnnotation.value();
                     proxy.setBindLayout(id);
-                }
+//                }
             }
         }
 

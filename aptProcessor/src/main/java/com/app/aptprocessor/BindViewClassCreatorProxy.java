@@ -27,9 +27,11 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
     private Map<Integer, MethodSymbol> mClickMethodElementMap = new HashMap<>();//点击事件
     private Map<Integer, FieldSpec> mFieldElementMap = new HashMap<>();//生成的成员变量
     private ClassName mViewClassName = ClassName.get("android.view", "View");//生成的成员变量
+    private ClassName mViewGroupClassName = ClassName.get("android.view", "ViewGroup");//生成的成员变量
     private int bindLayout = 0;
     private boolean isActivity;
     private boolean isView;
+    private boolean isFragment;
 
     /**
      * Instantiates a new Bind view class creator proxy.
@@ -40,7 +42,16 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
     public BindViewClassCreatorProxy(Elements elementUtils, TypeElement classElement) {
         super(elementUtils, classElement);
         isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
-        isView = ProcessorUtils.isInstanceof(classElement, "android.view.View");
+        if (!isActivity) {
+            //不是Activity
+            isView = ProcessorUtils.isInstanceof(classElement, "android.view.View");
+        }
+        if (!isActivity && !isView) {
+            //不是Activity不是View
+            isFragment = ProcessorUtils.isInstanceof(classElement, "android.app.Fragment") ||
+                         ProcessorUtils.isInstanceof(classElement,
+                                 "androidx.fragment.app.Fragment");
+        }
     }
 
     @Override
@@ -81,11 +92,20 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
      * @return type spec
      */
     public TypeSpec generateJavaCode() {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(mBindingClassName).addModifiers(
-                Modifier.PUBLIC).addModifiers(Modifier.FINAL).addFields(generateFields()).addMethod(
-                generateConstructorMethods());
+        TypeSpec.Builder builder = TypeSpec.classBuilder(mBindingClassName)
+                                           //public
+                                           .addModifiers(Modifier.PUBLIC)
+                                           //final
+                                           .addModifiers(Modifier.FINAL)
+                                           //生成成员变量
+                                           .addFields(generateFields())
+                                           //生成构造方法
+                                           .addMethod(generateConstructorMethods());
         if (isActivity && bindLayout != 0) {
             builder.addMethod(generateSetLayoutMethods());
+        } else if (isFragment && bindLayout != 0) {
+            builder.addMethod(generateOnCreateViewMethods());
+            builder.addMethod(generateInjectMethods());
         }
         return builder.addMethod(generateBindMethods())
                       .addMethod(generateBindViewMethods())
@@ -103,6 +123,14 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
         //不引用对象,防止两个对象互相持有引用导致内存泄漏
         //        fieldSpecs.add(
         //                FieldSpec.builder(mHostClassName, "bindSourceHost", Modifier.PRIVATE).build());
+        if (isFragment && bindLayout != 0) {
+            //添加根View
+            String viewName = "rootView";
+            FieldSpec fieldSpec = FieldSpec.builder(mViewClassName, viewName, Modifier.PRIVATE)
+                                           .build();
+            fieldSpecs.add(fieldSpec);
+        }
+
         for (int id : mVariableElementMap.keySet()) {
             //遍历需要findViewById的View
             VariableElement element = mVariableElementMap.get(id);
@@ -139,6 +167,14 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
         if (isActivity || isView) {
             //activity 跟View都有自带的findViewById功能
             methodBuilder.addParameter(mHostClassName, "host");
+        } else if (isFragment) {
+            //activity 跟View都有自带的findViewById功能
+            methodBuilder.addParameter(mHostClassName, "host");
+            if (bindLayout != 0) {
+                methodBuilder.addParameter(mViewGroupClassName, "container");
+            }else {
+                methodBuilder.addParameter(mViewClassName, "rootView");
+            }
         } else {
             //非Activity的需要传入根View
             methodBuilder.addParameter(mHostClassName, "host");
@@ -147,6 +183,7 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
 
         methodBuilder.addCode(
                 String.format("%s binding = new %s();", mBindingClassName, mBindingClassName));
+
         methodBuilder.addCode("\n");
         if (isActivity) {
             if (bindLayout != 0) {
@@ -154,6 +191,14 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
                 methodBuilder.addCode("\n");
             }
             methodBuilder.addCode("binding.bindView(host);");
+        } else if (isFragment) {
+            if (bindLayout != 0) {
+                methodBuilder.addCode("binding.onCreateView(host,container);");
+                methodBuilder.addCode("\n");
+                methodBuilder.addCode("binding.bindView(host,binding.rootView);");
+            }else {
+                methodBuilder.addCode("binding.bindView(host,rootView);");
+            }
         } else if (isView) {
             methodBuilder.addCode("binding.bindView(host);");
         } else {
@@ -190,16 +235,46 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
         return methodBuilder.build();
     }
 
+    /**
+     * 创建Fragment onCreateView方法
+     *
+     * @return
+     */
+    private MethodSpec generateOnCreateViewMethods() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("onCreateView")
+                                                     .addModifiers(Modifier.PUBLIC)
+                                                     .returns(void.class)
+                                                     .addParameter(mHostClassName, "host")
+                                                     .addParameter(mViewGroupClassName,
+                                                             "container");
+        methodBuilder.addCode(String.format(
+                "this.rootView = host.getLayoutInflater().inflate(%d, container, false);\n",
+                bindLayout));
+        return methodBuilder.build();
+    }
+
+    /**
+     * 返回rootView;
+     *
+     * @return
+     */
+    private MethodSpec generateInjectMethods() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("inject").addModifiers(
+                Modifier.PUBLIC).returns(mViewClassName);
+        methodBuilder.addCode("return this.rootView;\n");
+        return methodBuilder.build();
+    }
+
     private MethodSpec generateBindViewMethods() {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("bindView").addModifiers(
-                Modifier.PUBLIC).returns(void.class);
+                Modifier.PUBLIC);
         if (isActivity || isView) {
             //activity 跟View都有自带的findViewById功能
-            methodBuilder.addParameter(mHostClassName, "host");
+            methodBuilder.returns(void.class).addParameter(mHostClassName, "host");
         } else {
             //非Activity的需要传入根View
             methodBuilder.addParameter(mHostClassName, "host");
-            methodBuilder.addParameter(mViewClassName, "rootView");
+            methodBuilder.returns(void.class).addParameter(mViewClassName, "rootView");
         }
 
         for (int id : mFieldElementMap.keySet()) {

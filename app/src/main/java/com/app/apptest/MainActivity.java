@@ -1,94 +1,57 @@
 package com.app.apptest;
 
+import android.app.Instrumentation;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
+import android.os.Handler;
+import android.os.MessageQueue;
+import android.view.autofill.AutofillManager;
+import android.view.inputmethod.InputConnectionWrapper;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.inputmethod.InputConnectionCompat;
 
 import com.app.aptannotation.BindLayout;
 import com.app.aptannotation.BindView;
-import com.app.aptannotation.ViewClick;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
+import com.app.core.ViewBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 @BindLayout(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
+    @BindView(R.id.nav_view)
+    BottomNavigationView navView;
 
-    @BindView(R.id.fab)
-    FloatingActionButton fabAction;
+    @BindView(R.id.fl_container)
+    FrameLayout container;
 
-    @BindView(R.id.tv_hello7)
-    TextView hello7;
-
-    @BindView(R.id.tv_hello8)
-    TextView hello8;
-
-    @BindView(R.id.tv_hello9)
-    TextView hello9;
-
-    @BindView(R.id.tv_hello10)
-    TextView hello10;
-
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
+    private BottomNavigationView.OnNavigationItemSelectedListener
+            mOnNavigationItemSelectedListener = item -> {
+        switch (item.getItemId()) {
+            case R.id.navigation_home:
+                replaceFragment("首页");
+                return true;
+            case R.id.navigation_dashboard:
+                replaceFragment("导航");
+                return true;
+            case R.id.navigation_notifications:
+                replaceFragment("通知");
+                return true;
+        }
+        return false;
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        MainActivityViewBinding.bind(this);
-        setSupportActionBar(toolbar);
-
-        hello7.setText("hello7");
-        hello8.setText("hello8");
-        hello9.setText("hello9");
-        hello10.setText("hello10");
-        boolean isImplementInterface = Parcelable.class.isAssignableFrom(ParcelableBean.class);
-        Log.e("noah","isImplementInterface="+isImplementInterface);
+        ViewBinding.bind(this);
+        navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        replaceFragment("首页");
     }
 
-    @ViewClick(R.id.fab)
-    void fabAction() {
-        Snackbar.make(fabAction, "Replace with your own action", Snackbar.LENGTH_LONG).setAction(
-                "Action", null).show();
-    }
-
-    @ViewClick({R.id.tv_hello, R.id.tv_hello1, R.id.tv_hello2, R.id.tv_hello3, R.id.tv_hello4,
-            R.id.tv_hello5, R.id.tv_hello6, R.id.tv_hello7, R.id.tv_hello8, R.id.tv_hello9,
-            R.id.tv_hello10})
-    void helloAction(View view) {
-//        HelloActivityAutoBundle.build()
-//                .year(1)
-//                .bundleExtra(new Bundle())
-//                .charSequenceArrayExtra(new CharSequence[]{})
-//                .start(this);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    private void replaceFragment(String title) {
+        ClassBean bean = new ClassBean();
+        bean.setTitle(title);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fl_container,
+                MainFragmentAutoBundle.build().title(bean).create()).commitNow();
     }
 }

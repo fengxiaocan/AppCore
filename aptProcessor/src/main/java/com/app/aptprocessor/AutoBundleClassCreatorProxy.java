@@ -8,7 +8,6 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -20,11 +19,10 @@ import javax.lang.model.util.Elements;
  */
 public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
     private HashMap<String, VariableElement> mVariableElementMap = new HashMap();
-    private Map<String, FieldSpec> mFieldElementMap = new HashMap<>();//生成的成员变量
     private ClassName mContextClass = ClassName.get("android.content", "Context");
     private ClassName mActivityClass = ClassName.get("android.app", "Activity");
+    private ClassName mBundleClass = ClassName.get("android.os", "Bundle");
     private boolean isActivity;
-
     /**
      * Instantiates a new Bind view class creator proxy.
      *
@@ -59,17 +57,19 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      * @return type spec
      */
     public TypeSpec generateJavaCode() {
-        return TypeSpec.classBuilder(mBindingClassName).addModifiers(
-                Modifier.PUBLIC).addModifiers(Modifier.FINAL).addFields(generateFields()).addMethod(
-                generateConstructorMethods())
-                .addMethods(generateSetFieldMethods())
-                .addMethod(generateBuilderMethods())
-                .addMethod(generateIntentMethods())
-                .addMethod(generateStartMethods())
-                .addMethod(generateStartForResultMethods())
-                .addMethod(generateBindMethods())
-//                .addMethod(generateBindMethods())
-                .build();
+        TypeSpec.Builder method = TypeSpec.classBuilder(mBindingClassName).addModifiers(
+                Modifier.PUBLIC).addModifiers(Modifier.FINAL).addField(generateFields()).addMethod(
+                generateConstructorMethods()).addMethods(generateSetFieldMethods()).addMethod(
+                generateBuilderMethods()).addMethod(generateBundleMethods());
+
+        if (isActivity) {
+            method.addMethod(generateIntentMethods()).addMethod(generateStartMethods()).addMethod(
+                    generateStartForResultMethods());
+        } else {
+            method.addMethod(generateCreateMethods());
+        }
+        method.addMethod(generateBindMethods());
+        return method.build();
     }
 
     /**
@@ -77,15 +77,8 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      *
      * @return
      */
-    private HashSet<FieldSpec> generateFields() {
-        HashSet<FieldSpec> fieldSpecs = new HashSet();
-        for (String key : mVariableElementMap.keySet()) {
-            VariableElement element = mVariableElementMap.get(key);
-            FieldSpec field = toField(element);
-            fieldSpecs.add(field);
-            mFieldElementMap.put(field.name, field);
-        }
-        return fieldSpecs;
+    private FieldSpec generateFields() {
+        return FieldSpec.builder(mBundleClass, "mAutoBundle", Modifier.PRIVATE).build();
     }
 
 
@@ -97,6 +90,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
     private MethodSpec generateConstructorMethods() {
         MethodSpec.Builder methodBuilder = MethodSpec.constructorBuilder().addModifiers(
                 Modifier.PUBLIC);
+        methodBuilder.addCode("mAutoBundle = new Bundle();\n");
         return methodBuilder.build();
     }
 
@@ -107,12 +101,141 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      */
     private HashSet<MethodSpec> generateSetFieldMethods() {
         HashSet<MethodSpec> specs = new HashSet<>();
+        for (String key : mVariableElementMap.keySet()) {
 
-        for (String key : mFieldElementMap.keySet()) {
-            MethodSpec.Builder method = buildFieldMethod(Modifier.PUBLIC, key,
-                    mFieldElementMap.get(key).type);
-            specs.add(method.build());
+            VariableElement element = mVariableElementMap.get(key);
+            TypeName typeName = ClassName.get(element.asType());
+            String specType = typeName.toString();
+
+            MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(key).addModifiers(
+                    Modifier.PUBLIC).returns(mBindingClass).addParameter(typeName, key);
+
+            if (boolean.class.getName().equals(specType) || Boolean.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putBoolean(\"%s\",%s);", key, key));
+            } else if (byte.class.getName().equals(specType) || Byte.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putByte(\"%s\", %s);", key, key));
+            } else if (short.class.getName().equals(specType) || Short.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putShort(\"%s\", %s);", key, key));
+            } else if (int.class.getName().equals(specType) || Integer.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putInt(\"%s\", %s);", key, key));
+            } else if (long.class.getName().equals(specType) || Long.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putLong(\"%s\", %s);", key, key));
+            } else if (char.class.getName().equals(specType) || Character.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putChar(\"%s\", %s);", key, key));
+            } else if (float.class.getName().equals(specType) || Float.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(String.format("mAutoBundle.putFloat(\"%s\", %s);", key, key));
+            } else if (double.class.getName().equals(specType) || Double.class.getName().equals(
+                    specType))
+            {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putDouble(\"%s\", %s);", key, key));
+            } else if (String.class.getName().equals(specType)) {
+                methodBuilder.addCode(String.format("mAutoBundle.putString(\"%s\",%s);", key, key));
+            } else if ("boolean[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putBooleanArray(\"%s\",%s);", key, key));
+            } else if ("byte[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putByteArray(\"%s\",%s);", key, key));
+            } else if ("short[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putShortArray(\"%s\",%s);", key, key));
+            } else if ("int[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putIntArray(\"%s\",%s);", key, key));
+            } else if ("long[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putLongArray(\"%s\",%s);", key, key));
+            } else if ("char[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putCharArray(\"%s\",%s);", key, key));
+            } else if ("float[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putFloatArray(\"%s\",%s);", key, key));
+            } else if ("double[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putDoubleArray(\"%s\",%s);", key, key));
+            } else if ("java.lang.String[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putStringArray(\"%s\",%s);", key, key));
+            } else if ("java.util.ArrayList<java.lang.Integer>".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putIntegerArrayList(\"%s\",%s);", key, key));
+            } else if ("java.lang.CharSequence".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putCharSequence(\"%s\",%s);", key, key));
+            } else if ("java.lang.CharSequence[]".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putCharSequenceArray(\"%s\",%s);", key, key));
+            } else if ("java.util.ArrayList<java.lang.CharSequence>".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putCharSequenceArrayList(\"%s\",%s);", key,
+                                key));
+            } else if ("java.util.ArrayList<java.lang.String>".equals(specType)) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putStringArrayList(\"%s\",%s);", key, key));
+            } else if ("android.util.Size".equals(specType)) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putSize(\"%s\",%s);\n}\n", key, key));
+            } else if ("android.util.SizeF".equals(specType)) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putSizeF(\"%s\",%s);\n}\n", key, key));
+            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.Parcelable")) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putParcelable(\"%s\",%s);\n", key, key));
+            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.IBinder")) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {\n");
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putBinder(\"%s\",%s);\n}\n", key, key));
+
+            } else if (ProcessorUtils.isInterfacesOf(element, "java.io.Serializable")) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putSerializable(\"%s\",%s);\n", key, key));
+            } else if (ProcessorUtils.isInterfacesOfList(element, "android.os.Parcelable")) {
+                if (specType.startsWith("android.util.SparseArray")) {
+                    methodBuilder.addCode(
+                            String.format("mAutoBundle.putSparseParcelableArray(\"%s\",%s);\n", key,
+                                    key));
+                } else {
+                    methodBuilder.addCode(
+                            String.format("mAutoBundle.putParcelableArrayList(\"%s\",%s);\n", key,
+                                    key));
+                }
+            } else if (ProcessorUtils.isInterfacesOfArray(element, "android.os.Parcelable")) {
+                methodBuilder.addCode(
+                        String.format("mAutoBundle.putParcelableArray(\"%s\",%s);\n", key, key));
+            } else {
+                ClassName gson = ClassName.get("com.google.gson", "Gson");
+                methodBuilder.addCode("$T gson = new $T();\n", gson, gson);
+                methodBuilder.addCode(String.format("String json = gson.toJson(%s);\n", key));
+                methodBuilder.addCode(String.format("mAutoBundle.putString(\"%s\",json);", key));
+            }
+
+
+            methodBuilder.addCode("\nreturn this;\n");
+            specs.add(methodBuilder.build());
         }
+
         return specs;
     }
 
@@ -142,10 +265,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
         buildMethod.addStatement(String.format("Intent intent = new Intent(context, %s.class)",
                 mHostClassName));
         //把所有的数据传递到intent中
-        for (String key : mFieldElementMap.keySet()) {
-            buildMethod.addStatement(
-                    String.format("intent.putExtra(\"%s\", %s)", key, key));
-        }
+        buildMethod.addStatement("intent.putExtras(mAutoBundle)");
         //判断context是否是activity
         buildMethod.addCode("if (!(context instanceof $T)) {\n", mActivityClass);
         //不是则添加flag
@@ -155,6 +275,19 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
         //返回intent
         buildMethod.addStatement("return intent");
 
+        return buildMethod.build();
+    }
+
+    /**
+     * 构建Bundle
+     *
+     * @return
+     */
+    private MethodSpec generateBundleMethods() {
+        MethodSpec.Builder buildMethod = MethodSpec.methodBuilder("buildBundle").addModifiers(
+                Modifier.PUBLIC).returns(mBundleClass);
+        //返回Bundle
+        buildMethod.addStatement("return mAutoBundle");
         return buildMethod.build();
     }
 
@@ -185,6 +318,20 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
         return methodBuilder.build();
     }
 
+    /**
+     * 构建fragment的创建方法
+     *
+     * @return
+     */
+    private MethodSpec generateCreateMethods() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("create").addModifiers(
+                Modifier.PUBLIC).returns(mHostClassName);
+        methodBuilder.addCode("$T fragment = new $T();\n", mHostClassName, mHostClassName);
+        methodBuilder.addCode("fragment.setArguments(mAutoBundle);\n");
+        methodBuilder.addCode("return fragment;\n");
+        return methodBuilder.build();
+    }
+
 
     /**
      * 生成静态方法产生 mBindingClass
@@ -195,87 +342,145 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("bind").addModifiers(
                 Modifier.PUBLIC).addModifiers(Modifier.STATIC).returns(void.class);
         methodBuilder.addParameter(mHostClassName, "host");
+        if (isActivity) {
+            methodBuilder.addStatement("Intent intent = host.getIntent()");
 
-        methodBuilder.addStatement("Intent intent = host.getIntent()");
+            methodBuilder.addStatement("Bundle autoBundle = intent.getExtras()");
+        } else {
+            methodBuilder.addStatement("Bundle autoBundle = host.getArguments()");
+        }
+        methodBuilder.addCode("if(autoBundle == null) { return; }\n");
+        for (String key : mVariableElementMap.keySet()) {
+            VariableElement element = mVariableElementMap.get(key);
+            TypeName typeName = ClassName.get(element.asType());
+            String specType = typeName.toString();
 
-        for (String key : mFieldElementMap.keySet()) {
-            FieldSpec spec = mFieldElementMap.get(key);
-            String specType = spec.type.toString();
             if (boolean.class.getName().equals(specType) || Boolean.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getBooleanExtra(\"%s\",false);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getBoolean(\"%s\");", key, key));
             } else if (byte.class.getName().equals(specType) || Byte.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getByteExtra(\"%s\", (byte) 0);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getByte(\"%s\");", key, key));
             } else if (short.class.getName().equals(specType) || Short.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getShortExtra(\"%s\", (short) 0);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getShort(\"%s\");", key, key));
             } else if (int.class.getName().equals(specType) || Integer.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getIntExtra(\"%s\", 0);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getInt(\"%s\");", key, key));
             } else if (long.class.getName().equals(specType) || Long.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getLongExtra(\"%s\", 0L);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getLong(\"%s\");", key, key));
             } else if (char.class.getName().equals(specType) || Character.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getCharExtra(\"%s\", '\\u0000');", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getChar(\"%s\");", key, key));
             } else if (float.class.getName().equals(specType) || Float.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getFloatExtra(\"%s\", 0F);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getFloat(\"%s\");", key, key));
             } else if (double.class.getName().equals(specType) || Double.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getDoubleExtra(\"%s\", 0D);", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getDouble(\"%s\");", key, key));
             } else if (String.class.getName().equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getStringExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getString(\"%s\");", key, key));
             } else if ("boolean[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getBooleanArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getBooleanArray(\"%s\");", key, key));
             } else if ("byte[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getByteArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getByteArray(\"%s\");", key, key));
             } else if ("short[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getShortArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getShortArray(\"%s\");", key, key));
             } else if ("int[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getIntArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getIntArray(\"%s\");", key, key));
             } else if ("long[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getLongArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getLongArray(\"%s\");", key, key));
             } else if ("char[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getCharArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getCharArray(\"%s\");", key, key));
             } else if ("float[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getFloatArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getFloatArray(\"%s\");", key, key));
             } else if ("double[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getDoubleArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getDoubleArray(\"%s\");", key, key));
             } else if ("java.lang.String[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getStringArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getStringArray(\"%s\");", key, key));
             } else if ("java.util.ArrayList<java.lang.Integer>".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getIntegerArrayListExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getIntegerArrayList(\"%s\");", key,
+                                key));
             } else if ("java.lang.CharSequence".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getCharSequenceExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getCharSequence(\"%s\");", key, key));
             } else if ("java.lang.CharSequence[]".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getCharSequenceArrayExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getCharSequenceArray(\"%s\");", key,
+                                key));
             } else if ("java.util.ArrayList<java.lang.CharSequence>".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getCharSequenceArrayListExtra(\"%s\");", key, key));
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getCharSequenceArrayList(\"%s\");", key,
+                                key));
             } else if ("java.util.ArrayList<java.lang.String>".equals(specType)) {
-                methodBuilder.addCode(String.format("host.%s = intent.getStringArrayListExtra(\"%s\");", key, key));
-            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getStringArrayList(\"%s\");", key,
+                                key));
+            } else if ("android.util.Size".equals(specType)) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getSize(\"%s\");\n}", key, key));
+            } else if ("android.util.SizeF".equals(specType)) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
+                methodBuilder.addCode(
+                        String.format("host.%s = autoBundle.getSizeF(\"%s\");\n}", key, key));
+            } else if (ProcessorUtils.isInterfacesOf(element,
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(
-                        String.format("host.%s = ($T)intent.getParcelableExtra(\"%s\");\n", key,
-                                key), spec.type);
-            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+                        String.format("host.%s = ($T)autoBundle.getParcelable(\"%s\");", key, key),
+                        typeName);
+            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.IBinder")) {
+                methodBuilder.addCode(
+                        "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {\n");
+                methodBuilder.addCode(
+                        String.format("host.%s = ($T)autoBundle.getBinder(\"%s\");\n}", key, key),
+                        typeName);
+
+            } else if (ProcessorUtils.isInterfacesOf(element,
                     "java.io.Serializable"))
             {
                 methodBuilder.addCode(
-                        String.format("host.%s = ($T)intent.getSerializableExtra(\"%s\");\n", key,
-                                key), spec.type);
-            } else if (ProcessorUtils.isInterfacesOfList(mVariableElementMap.get(key),
+                        String.format("host.%s = ($T)autoBundle.getSerializable(\"%s\");", key,
+                                key), typeName);
+            } else if (ProcessorUtils.isInterfacesOfList(element,
+                    "android.os.Parcelable"))
+            {
+                if (specType.startsWith("android.util.SparseArray")) {
+                    methodBuilder.addCode(
+                            String.format("host.%s = autoBundle.getSparseParcelableArray(\"%s\");",
+                                    key, key));
+                } else {
+                    methodBuilder.addCode(
+                            String.format("host.%s = autoBundle.getParcelableArrayList(\"%s\");",
+                                    key, key));
+                }
+            } else if (ProcessorUtils.isInterfacesOfArray(element,
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(
-                        String.format("host.%s = intent.getParcelableArrayListExtra(\"%s\");\n",
-                                key, key));
-            }else if (ProcessorUtils.isInterfacesOfArray(mVariableElementMap.get(key),
-                    "android.os.Parcelable"))
-            {
-                methodBuilder.addCode(
-                        String.format("host.%s = ($T)intent.getParcelableArrayExtra(\"%s\");\n",
-                                key, key), spec.type);
+                        String.format("host.%s = ($T)autoBundle.getParcelableArray(\"%s\");", key,
+                                key), typeName);
             }  else {
-                System.out.println("无法解析:" + key);
+                ClassName gson = ClassName.get("com.google.gson", "Gson");
+                methodBuilder.addCode("$T gson = new $T();\n", gson, gson);
                 methodBuilder.addCode(
-                        String.format("//host.%s = ??? 无法解析该类型的参数,请实现Parcelable接口或Serializable接口",
-                                key));
+                        String.format("String json = autoBundle.getString(\"%s\");\n", key));
+                methodBuilder.addCode(String.format("host.%s = gson.fromJson(json, $T.class);", key),typeName);
             }
             methodBuilder.addCode("\n");
         }

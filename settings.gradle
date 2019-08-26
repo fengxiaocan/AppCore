@@ -1,1 +1,1 @@
-include ':app', ':aptProcessor', ':aptAnnotation'
+include ':app', ':aptProcessor', ':aptAnnotation', ':core'
