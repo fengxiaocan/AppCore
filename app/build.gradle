@@ -46,8 +46,9 @@ dependencies {
 
     annotationProcessor 'com.google.auto.service:auto-service:1.0-rc6'
 
-//    implementation 'com.github.fengxiaocan.AppCore:aptAnnotation:0.0.4'
-//    annotationProcessor 'com.github.fengxiaocan.AppCore:aptProcessor:0.0.4'
+//    implementation 'com.github.fengxiaocan.AppCore:core:0.0.5'
+//    implementation 'com.github.fengxiaocan.AppCore:aptAnnotation:0.0.5'
+//    annotationProcessor 'com.github.fengxiaocan.AppCore:aptProcessor:0.0.5'
 
     implementation project(path: ':core')
     implementation project(path: ':aptAnnotation')
