@@ -1,5 +1,7 @@
-package com.app.aptprocessor;
+package com.app.apt.proxy;
 
+import com.app.apt.base.BaseClassCreatorProxy;
+import com.app.apt.util.ProcessorUtil;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -31,7 +33,6 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
     private int bindLayout = 0;
     private boolean isActivity;
     private boolean isView;
-    private boolean isFragment;
 
     /**
      * Instantiates a new Bind view class creator proxy.
@@ -41,16 +42,10 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
      */
     public BindViewClassCreatorProxy(Elements elementUtils, TypeElement classElement) {
         super(elementUtils, classElement);
-        isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
+        isActivity = ProcessorUtil.isActivity(classElement);
         if (!isActivity) {
             //不是Activity
-            isView = ProcessorUtils.isInstanceof(classElement, "android.view.View");
-        }
-        if (!isActivity && !isView) {
-            //不是Activity不是View
-            isFragment = ProcessorUtils.isInstanceof(classElement, "android.app.Fragment") ||
-                         ProcessorUtils.isInstanceof(classElement,
-                                 "androidx.fragment.app.Fragment");
+            isView = ProcessorUtil.isView(classElement);
         }
     }
 
@@ -103,9 +98,6 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
                                            .addMethod(generateConstructorMethods());
         if (isActivity && bindLayout != 0) {
             builder.addMethod(generateSetLayoutMethods());
-        } else if (isFragment && bindLayout != 0) {
-            builder.addMethod(generateOnCreateViewMethods());
-            builder.addMethod(generateInjectMethods());
         }
         return builder.addMethod(generateBindMethods())
                       .addMethod(generateBindViewMethods())
@@ -121,16 +113,6 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
     private HashSet<FieldSpec> generateFields() {
         HashSet<FieldSpec> fieldSpecs = new HashSet();
         //不引用对象,防止两个对象互相持有引用导致内存泄漏
-        //        fieldSpecs.add(
-        //                FieldSpec.builder(mHostClassName, "bindSourceHost", Modifier.PRIVATE).build());
-        if (isFragment && bindLayout != 0) {
-            //添加根View
-            String viewName = "rootView";
-            FieldSpec fieldSpec = FieldSpec.builder(mViewClassName, viewName, Modifier.PRIVATE)
-                                           .build();
-            fieldSpecs.add(fieldSpec);
-        }
-
         for (int id : mVariableElementMap.keySet()) {
             //遍历需要findViewById的View
             VariableElement element = mVariableElementMap.get(id);
@@ -167,14 +149,6 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
         if (isActivity || isView) {
             //activity 跟View都有自带的findViewById功能
             methodBuilder.addParameter(mHostClassName, "host");
-        } else if (isFragment) {
-            //activity 跟View都有自带的findViewById功能
-            methodBuilder.addParameter(mHostClassName, "host");
-            if (bindLayout != 0) {
-                methodBuilder.addParameter(mViewGroupClassName, "container");
-            }else {
-                methodBuilder.addParameter(mViewClassName, "rootView");
-            }
         } else {
             //非Activity的需要传入根View
             methodBuilder.addParameter(mHostClassName, "host");
@@ -191,15 +165,7 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
                 methodBuilder.addCode("\n");
             }
             methodBuilder.addCode("binding.bindView(host);");
-        } else if (isFragment) {
-            if (bindLayout != 0) {
-                methodBuilder.addCode("binding.onCreateView(host,container);");
-                methodBuilder.addCode("\n");
-                methodBuilder.addCode("binding.bindView(host,binding.rootView);");
-            }else {
-                methodBuilder.addCode("binding.bindView(host,rootView);");
-            }
-        } else if (isView) {
+        }  else if (isView) {
             methodBuilder.addCode("binding.bindView(host);");
         } else {
             methodBuilder.addCode("binding.bindView(host,rootView);");
@@ -250,18 +216,6 @@ public class BindViewClassCreatorProxy extends BaseClassCreatorProxy {
         methodBuilder.addCode(String.format(
                 "this.rootView = host.getLayoutInflater().inflate(%d, container, false);\n",
                 bindLayout));
-        return methodBuilder.build();
-    }
-
-    /**
-     * 返回rootView;
-     *
-     * @return
-     */
-    private MethodSpec generateInjectMethods() {
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("inject").addModifiers(
-                Modifier.PUBLIC).returns(mViewClassName);
-        methodBuilder.addCode("return this.rootView;\n");
         return methodBuilder.build();
     }
 

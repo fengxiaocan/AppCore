@@ -1,7 +1,11 @@
-package com.app.apptest;
+package com.app.apptest.data;
 
+import com.app.aptannotation.BindDataClass;
+
+@BindDataClass
 public class ClassBean {
-    private String title;
+
+    protected String title;
 
     public String getTitle() {
         return title;

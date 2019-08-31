@@ -1,4 +1,4 @@
-package com.app.apptest;
+package com.app.apptest.data;
 
 import java.io.Serializable;
 

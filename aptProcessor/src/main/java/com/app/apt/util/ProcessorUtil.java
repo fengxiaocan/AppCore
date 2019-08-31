@@ -1,32 +1,51 @@
-package com.app.aptprocessor;
+package com.app.apt.util;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.List;
 
-import javax.accessibility.Accessible;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
-public class ProcessorUtils {
-    /**
-     * 获取父类对象
-     *
-     * @param element
-     * @return
-     */
-    //    public static TypeElement getSuperClass(TypeElement element) {
-    //        TypeMirror parent = element.getSuperclass();
-    //        if (parent instanceof DeclaredType) {
-    //            Element elt = ((DeclaredType) parent).asElement();
-    //            if (elt instanceof TypeElement) {
-    //                return (TypeElement) elt;
-    //            }
-    //        }
-    //        return null;
-    //    }
+public class ProcessorUtil {
+
+    public static boolean isActivity(TypeElement classElement) {
+        return ProcessorUtil.isInstanceof(classElement, "android.app.Activity");
+    }
+
+    public static boolean isView(TypeElement classElement) {
+        return ProcessorUtil.isInstanceof(classElement, "android.view.View");
+    }
+
+    public static boolean isFragment(TypeElement classElement) {
+        return ProcessorUtil.isInstanceof(classElement, "android.app.Fragment") ||
+               ProcessorUtil.isInstanceof(classElement, "androidx.fragment.app.Fragment");
+    }
+
+    public static Symbol.ClassSymbol getSuperTypeElement(Type.ClassType classType,
+            String... superClass)
+    {
+        if (classType != null && classType.tsym != null &&
+            classType.tsym instanceof Symbol.ClassSymbol)
+        {
+            Symbol.ClassSymbol typeSymbol = (Symbol.ClassSymbol) classType.asElement();
+
+            for (String aClass : superClass) {
+                if (typeSymbol.toString().equals(aClass)) {
+                    return typeSymbol;
+                }
+            }
+
+            Type superclass = typeSymbol.getSuperclass();
+            if (superclass instanceof Type.ClassType) {
+                return getSuperTypeElement(((Type.ClassType) superclass), superClass);
+            }
+        }
+        return null;
+    }
 
     /**
      * 判断是否继承某个类
@@ -157,7 +176,7 @@ public class ProcessorUtils {
         if (elemtype instanceof Type.ClassType) {
             List<Type> interfaces_field = ((Type.ClassType) elemtype).interfaces_field;
             for (Type type : interfaces_field) {
-                System.out.println("elemtype instanceof Type.ClassType ="+type.toString());
+                System.out.println("elemtype instanceof Type.ClassType =" + type.toString());
                 if (type.toString().equals(className)) {
                     return true;
                 }

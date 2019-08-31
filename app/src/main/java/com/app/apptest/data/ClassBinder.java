@@ -1,4 +1,4 @@
-package com.app.apptest;
+package com.app.apptest.data;
 
 import android.os.IBinder;
 import android.os.IInterface;
@@ -8,6 +8,7 @@ import android.os.RemoteException;
 import java.io.FileDescriptor;
 
 public class ClassBinder implements IBinder {
+    
     @Override
     public String getInterfaceDescriptor() throws RemoteException {
         return null;

@@ -1,4 +1,4 @@
-package com.app.aptprocessor;
+package com.app.apt.base;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -15,7 +15,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
-abstract class BaseClassCreatorProxy {
+public abstract class BaseClassCreatorProxy {
     protected String mBindingClassName;//生成的绑定类
     protected String mPackageName;//包名
     protected TypeElement mTypeElement;//依赖的类
@@ -27,6 +27,7 @@ abstract class BaseClassCreatorProxy {
         //获取依赖的类的包名
         PackageElement packageElement = elementUtils.getPackageOf(mTypeElement);
         String packageName = packageElement.getQualifiedName().toString();
+
         this.mPackageName = packageName;
         //获取依赖的类的名称
         String className = mTypeElement.getSimpleName().toString();

@@ -1,5 +1,7 @@
-package com.app.aptprocessor;
+package com.app.apt.proxy;
 
+import com.app.apt.util.ProcessorUtil;
+import com.app.apt.base.BaseClassCreatorProxy;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -31,7 +33,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
      */
     public AutoBundleClassCreatorProxy(Elements elementUtils, TypeElement classElement) {
         super(elementUtils, classElement);
-        isActivity = ProcessorUtils.isInstanceof(classElement, "android.app.Activity");
+        isActivity = ProcessorUtil.isActivity(classElement);
     }
 
     @Override
@@ -199,19 +201,19 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                         "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
                 methodBuilder.addCode(
                         String.format("mAutoBundle.putSizeF(\"%s\",%s);\n}\n", key, key));
-            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.Parcelable")) {
+            } else if (ProcessorUtil.isInterfacesOf(element, "android.os.Parcelable")) {
                 methodBuilder.addCode(
                         String.format("mAutoBundle.putParcelable(\"%s\",%s);\n", key, key));
-            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.IBinder")) {
+            } else if (ProcessorUtil.isInterfacesOf(element, "android.os.IBinder")) {
                 methodBuilder.addCode(
                         "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {\n");
                 methodBuilder.addCode(
                         String.format("mAutoBundle.putBinder(\"%s\",%s);\n}\n", key, key));
 
-            } else if (ProcessorUtils.isInterfacesOf(element, "java.io.Serializable")) {
+            } else if (ProcessorUtil.isInterfacesOf(element, "java.io.Serializable")) {
                 methodBuilder.addCode(
                         String.format("mAutoBundle.putSerializable(\"%s\",%s);\n", key, key));
-            } else if (ProcessorUtils.isInterfacesOfList(element, "android.os.Parcelable")) {
+            } else if (ProcessorUtil.isInterfacesOfList(element, "android.os.Parcelable")) {
                 if (specType.startsWith("android.util.SparseArray")) {
                     methodBuilder.addCode(
                             String.format("mAutoBundle.putSparseParcelableArray(\"%s\",%s);\n", key,
@@ -221,7 +223,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                             String.format("mAutoBundle.putParcelableArrayList(\"%s\",%s);\n", key,
                                     key));
                 }
-            } else if (ProcessorUtils.isInterfacesOfArray(element, "android.os.Parcelable")) {
+            } else if (ProcessorUtil.isInterfacesOfArray(element, "android.os.Parcelable")) {
                 methodBuilder.addCode(
                         String.format("mAutoBundle.putParcelableArray(\"%s\",%s);\n", key, key));
             } else {
@@ -438,26 +440,26 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                         "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {\n");
                 methodBuilder.addCode(
                         String.format("host.%s = autoBundle.getSizeF(\"%s\");\n}", key, key));
-            } else if (ProcessorUtils.isInterfacesOf(element,
+            } else if (ProcessorUtil.isInterfacesOf(element,
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(
                         String.format("host.%s = ($T)autoBundle.getParcelable(\"%s\");", key, key),
                         typeName);
-            } else if (ProcessorUtils.isInterfacesOf(element, "android.os.IBinder")) {
+            } else if (ProcessorUtil.isInterfacesOf(element, "android.os.IBinder")) {
                 methodBuilder.addCode(
                         "if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {\n");
                 methodBuilder.addCode(
                         String.format("host.%s = ($T)autoBundle.getBinder(\"%s\");\n}", key, key),
                         typeName);
 
-            } else if (ProcessorUtils.isInterfacesOf(element,
+            } else if (ProcessorUtil.isInterfacesOf(element,
                     "java.io.Serializable"))
             {
                 methodBuilder.addCode(
                         String.format("host.%s = ($T)autoBundle.getSerializable(\"%s\");", key,
                                 key), typeName);
-            } else if (ProcessorUtils.isInterfacesOfList(element,
+            } else if (ProcessorUtil.isInterfacesOfList(element,
                     "android.os.Parcelable"))
             {
                 if (specType.startsWith("android.util.SparseArray")) {
@@ -469,7 +471,7 @@ public class AutoBundleClassCreatorProxy extends BaseClassCreatorProxy {
                             String.format("host.%s = autoBundle.getParcelableArrayList(\"%s\");",
                                     key, key));
                 }
-            } else if (ProcessorUtils.isInterfacesOfArray(element,
+            } else if (ProcessorUtil.isInterfacesOfArray(element,
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(

@@ -1,5 +1,7 @@
-package com.app.aptprocessor;
+package com.app.apt.proxy;
 
+import com.app.apt.util.ProcessorUtil;
+import com.app.apt.base.BaseClassCreatorProxy;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -245,25 +247,25 @@ public class AutoIntentClassCreatorProxy extends BaseClassCreatorProxy {
                 methodBuilder.addCode(String.format("host.%s = intent.getCharSequenceArrayListExtra(\"%s\");", key, key));
             } else if ("java.util.ArrayList<java.lang.String>".equals(specType)) {
                 methodBuilder.addCode(String.format("host.%s = intent.getStringArrayListExtra(\"%s\");", key, key));
-            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+            } else if (ProcessorUtil.isInterfacesOf(mVariableElementMap.get(key),
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(
                         String.format("host.%s = ($T)intent.getParcelableExtra(\"%s\");\n", key,
                                 key), spec.type);
-            } else if (ProcessorUtils.isInterfacesOf(mVariableElementMap.get(key),
+            } else if (ProcessorUtil.isInterfacesOf(mVariableElementMap.get(key),
                     "java.io.Serializable"))
             {
                 methodBuilder.addCode(
                         String.format("host.%s = ($T)intent.getSerializableExtra(\"%s\");\n", key,
                                 key), spec.type);
-            } else if (ProcessorUtils.isInterfacesOfList(mVariableElementMap.get(key),
+            } else if (ProcessorUtil.isInterfacesOfList(mVariableElementMap.get(key),
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(
                         String.format("host.%s = intent.getParcelableArrayListExtra(\"%s\");\n",
                                 key, key));
-            }else if (ProcessorUtils.isInterfacesOfArray(mVariableElementMap.get(key),
+            }else if (ProcessorUtil.isInterfacesOfArray(mVariableElementMap.get(key),
                     "android.os.Parcelable"))
             {
                 methodBuilder.addCode(

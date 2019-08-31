@@ -1,16 +1,13 @@
-package com.app.apptest;
+package com.app.apptest.activity;
 
-import android.app.Instrumentation;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.MessageQueue;
-import android.view.autofill.AutofillManager;
-import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.inputmethod.InputConnectionCompat;
 
+import com.app.apptest.R;
+import com.app.apptest.data.ClassBean;
+import com.app.apptest.fragment.MainFragmentAutoBundle;
 import com.app.aptannotation.BindLayout;
 import com.app.aptannotation.BindView;
 import com.app.core.ViewBinding;
@@ -43,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewBinding.bind(this);
         navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         replaceFragment("首页");
     }

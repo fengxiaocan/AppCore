@@ -1,45 +1,19 @@
-package com.app.apptest;
+package com.app.apptest.activity;
 
-import android.app.Instrumentation;
-import android.app.UiAutomation;
-import android.inputmethodservice.InputMethodService;
-import android.inputmethodservice.Keyboard;
-import android.inputmethodservice.KeyboardView;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyboardShortcutGroup;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowInsets;
-import android.view.inputmethod.InputMethod;
-import android.view.inputmethod.InputMethodInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.os.PersistableBundle;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
 
-import com.app.aptannotation.AutoBundle;
+import com.app.apptest.R;
+import com.app.aptannotation.AutoIntent;
 import com.app.aptannotation.BindLayout;
-import com.app.aptannotation.BindView;
 import com.app.core.ViewBinding;
 
-@BindLayout(R.layout.fragment_main)
-public class MainFragment extends Fragment {
-
-    @BindView(R.id.tv_message)
-    TextView tvMessage;
-    @BindView(R.id.et_input)
-    EditText etInput;
-
-    @AutoBundle
-    ClassBean title;
-
+@BindLayout(R.layout.activity_hello)
+public class HelloActivity extends AppCompatActivity {
     //    @AutoBundle
     //    int year;
     //    @AutoBundle
@@ -127,20 +101,12 @@ public class MainFragment extends Fragment {
     //    @AutoBundle
     //    SparseArray<ParcelableBean> sparseArray;
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState)
-    {
-        return ViewBinding.inject(this, container);
-        //        return inflater.inflate(R.layout.fragment_main,container,false);
-    }
+    @AutoIntent
+    String message;
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        MainFragmentAutoBundle.bind(this);
-
-        tvMessage.setText(title.getTitle());
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        HelloActivityAutoIntent.bind(this);
     }
 }

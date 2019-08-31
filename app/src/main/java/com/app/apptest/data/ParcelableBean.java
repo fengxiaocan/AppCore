@@ -1,4 +1,4 @@
-package com.app.apptest;
+package com.app.apptest.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
